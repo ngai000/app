@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Nhật Ký Của Tôi</title>
+<meta name="theme-color" content="#12162B">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,600;1,400&display=swap');
+
+:root{
+  --ink:#12162B;
+  --ink-soft:#1B2140;
+  --ink-soft2:#232a4d;
+  --paper:#F6EFDD;
+  --paper-line:#E4D9BB;
+  --ink-text:#2A2416;
+  --fog:#98A0C2;
+  --fog-dim:#6C7392;
+  --gold:#D9A54B;
+  --rose:#C97B63;
+  --mood-1:#4F6FA6;
+  --mood-2:#5F8F8A;
+  --mood-3:#A79B72;
+  --mood-4:#D9A54B;
+  --mood-5:#E8925A;
+  --radius:18px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--ink);
+  color:var(--fog);
+  font-family:'Be Vietnam Pro',sans-serif;
+  overscroll-behavior:none;
+}
+#app{
+  max-width:520px;
+  margin:0 auto;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+/* HEADER */
+header.top{
+  padding:22px 20px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+header.top .greet{
+  font-family:'Noto Serif',serif;
+  font-size:22px;
+  font-style:italic;
+  color:#EFE9D8;
+}
+header.top .date{
+  font-size:13px;
+  color:var(--fog-dim);
+  letter-spacing:.02em;
+}
+.streak{
+  margin-top:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:var(--ink-soft);
+  padding:6px 12px;
+  border-radius:99px;
+  font-size:12.5px;
+  color:var(--gold);
+  width:max-content;
+  border:1px solid #2c335c;
+}
+
+/* VIEWS */
+main{
+  flex:1;
+  padding:4px 16px 90px;
+  overflow-y:auto;
+}
+.view{display:none;}
+.view.active{display:block; animation:fade .25s ease;}
+@keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.section-title{
+  font-family:'Noto Serif',serif;
+  font-size:17px;
+  color:#EFE9D8;
+  margin:18px 0 10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* ENTRY CARD (paper page look) */
+.entry-card{
+  background:var(--paper);
+  color:var(--ink-text);
+  border-radius:var(--radius);
+  padding:16px 16px 14px 18px;
+  margin-bottom:12px;
+  position:relative;
+  border-left:6px solid var(--mood-3);
+  box-shadow:0 6px 16px rgba(0,0,0,.25);
+}
+.entry-card .row1{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:8px;
+}
+.entry-card .etitle{
+  font-family:'Noto Serif',serif;
+  font-weight:600;
+  font-size:16px;
+  color:#241f10;
+}
+.entry-card .emood{font-size:20px;}
+.entry-card .edate{
+  font-size:11.5px;
+  color:#8a7c52;
+  margin-top:2px;
+  letter-spacing:.02em;
+}
+.entry-card .esnippet{
+  font-family:'Noto Serif',serif;
+  font-size:14px;
+  line-height:1.5;
+  margin-top:8px;
+  color:#453c26;
+  white-space:pre-wrap;
+}
+.entry-card .etools{
+  margin-top:10px;
+  display:flex;
+  gap:14px;
+}
+.etools button{
+  background:none;border:none;padding:0;font-size:12px;
+  color:#8a7c52; font-family:inherit; cursor:pointer;
+}
+.etools button.del{color:var(--rose);}
+
+.empty{
+  text-align:center;
+  padding:50px 20px;
+  color:var(--fog-dim);
+  font-size:14px;
+}
+.empty .big{font-size:32px; display:block; margin-bottom:8px;}
+
+/* FAB */
+.fab{
+  position:fixed;
+  bottom:86px;
+  right:calc(50% - 260px + 20px);
+  width:56px;height:56px;
+  border-radius:50%;
+  background:var(--gold);
+  color:#241f10;
+  border:none;
+  font-size:26px;
+  box-shadow:0 8px 20px rgba(217,165,75,.4);
+  display:flex;align-items:center;justify-content:center;
+  z-index:20;
+}
+@media (max-width:560px){
+  .fab{right:22px;}
+}
+
+/* MOOD (Hôm nay) VIEW */
+.mood-picker{
+  display:flex;
+  justify-content:space-between;
+  background:var(--ink-soft);
+  border-radius:16px;
+  padding:14px 10px;
+  border:1px solid #2c335c;
+}
+.mood-opt{
+  flex:1;
+  text-align:center;
+  background:none;border:none;
+  padding:8px 2px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.mood-opt .em{font-size:28px; display:block;}
+.mood-opt .lb{font-size:10.5px; color:var(--fog-dim); margin-top:4px; display:block;}
+.mood-opt.selected{background:#2b3260;}
+.mood-opt.selected .lb{color:#EFE9D8;}
+
+textarea, input[type=text], input[type=date]{
+  width:100%;
+  background:var(--ink-soft);
+  border:1px solid #2c335c;
+  color:#EFE9D8;
+  border-radius:12px;
+  padding:12px 14px;
+  font-family:'Be Vietnam Pro',sans-serif;
+  font-size:14.5px;
+  margin-top:12px;
+  resize:vertical;
+}
+textarea::placeholder, input::placeholder{color:var(--fog-dim);}
+
+.btn-primary{
+  width:100%;
+  margin-top:14px;
+  background:var(--gold);
+  color:#241f10;
+  border:none;
+  padding:13px;
+  border-radius:12px;
+  font-weight:600;
+  font-size:14.5px;
+  cursor:pointer;
+}
+.btn-secondary{
+  width:100%;
+  margin-top:10px;
+  background:transparent;
+  color:var(--fog);
+  border:1px solid #2c335c;
+  padding:11px;
+  border-radius:12px;
+  font-size:13.5px;
+  cursor:pointer;
+}
+
+.history-strip{
+  display:flex;
+  gap:6px;
+  margin-top:16px;
+  overflow-x:auto;
+  padding-bottom:4px;
+}
+.hday{
+  flex:0 0 auto;
+  width:34px;
+  text-align:center;
+}
+.hdot{
+  width:22px;height:22px;
+  border-radius:50%;
+  margin:0 auto 4px;
+  background:#2b3260;
+  border:1px solid #384080;
+}
+.hday .dlabel{font-size:9.5px; color:var(--fog-dim);}
+
+/* NOTES */
+.note-card{
+  background:var(--ink-soft);
+  border:1px solid #2c335c;
+  border-radius:14px;
+  padding:12px 14px;
+  margin-bottom:10px;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.note-card .star{font-size:16px; cursor:pointer; flex:0 0 auto;}
+.note-card .ncontent{flex:1; font-size:14px; color:#EFE9D8; white-space:pre-wrap; line-height:1.45;}
+.note-card .ndate{font-size:10.5px; color:var(--fog-dim); margin-top:4px;}
+.note-card .del{background:none;border:none;color:var(--rose);font-size:12px;cursor:pointer;flex:0 0 auto;}
+.note-card.important{border-color:var(--gold);}
+
+/* SEARCH */
+.chip-row{display:flex; gap:8px; overflow-x:auto; margin-top:12px; padding-bottom:4px;}
+.chip{
+  flex:0 0 auto;
+  background:var(--ink-soft);
+  border:1px solid #2c335c;
+  color:var(--fog);
+  padding:7px 13px;
+  border-radius:99px;
+  font-size:13px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.chip.active{background:var(--gold); color:#241f10; border-color:var(--gold); font-weight:600;}
+
+/* NAV */
+nav.bottom{
+  position:fixed;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:520px;
+  background:var(--ink-soft);
+  border-top:1px solid #2c335c;
+  display:flex;
+  z-index:15;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav.bottom button{
+  flex:1;
+  background:none;
+  border:none;
+  padding:10px 4px 8px;
+  color:var(--fog-dim);
+  font-family:inherit;
+  font-size:10.5px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  cursor:pointer;
+}
+nav.bottom button .ic{font-size:19px;}
+nav.bottom button.active{color:var(--gold);}
+
+/* MODAL */
+.overlay{
+  position:fixed; inset:0;
+  background:rgba(10,12,24,.6);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:50;
+}
+.overlay.active{display:flex;}
+.sheet{
+  background:var(--ink);
+  width:100%;
+  max-width:520px;
+  border-radius:22px 22px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  max-height:88vh;
+  overflow-y:auto;
+  border-top:1px solid #2c335c;
+}
+.sheet h3{
+  font-family:'Noto Serif',serif;
+  color:#EFE9D8;
+  margin:0 0 4px;
+  font-size:19px;
+}
+.sheet .close{
+  float:right;
+  background:none;border:none;color:var(--fog-dim);font-size:20px;cursor:pointer;
+}
+.label{font-size:12px; color:var(--fog-dim); margin-top:14px; display:block;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div class="greet" id="greetText">Chào bạn</div>
+    <div class="date" id="todayDate"></div>
+    <div class="streak" id="streakBox">🔥 0 ngày liên tiếp</div>
+  </header>
+
+  <main>
+    <!-- VIEW: DIARY -->
+    <section class="view active" id="view-diary">
+      <div class="section-title">Nhật ký của bạn</div>
+      <div id="diaryList"></div>
+    </section>
+
+    <!-- VIEW: MOOD / TODAY -->
+    <section class="view" id="view-mood">
+      <div class="section-title">Hôm nay bạn thế nào?</div>
+      <div class="mood-picker" id="moodPicker"></div>
+      <span class="label">Điều gì khiến hôm nay như vậy? (không bắt buộc)</span>
+      <textarea id="moodNote" rows="3" placeholder="Một vài dòng ngắn gọn..."></textarea>
+      <button class="btn-primary" id="saveMoodBtn">Lưu đánh giá hôm nay</button>
+
+      <div class="section-title" style="margin-top:26px;">14 ngày gần đây</div>
+      <div class="history-strip" id="historyStrip"></div>
+    </section>
+
+    <!-- VIEW: NOTES -->
+    <section class="view" id="view-notes">
+      <div class="section-title">Điều quan trọng cần nhớ</div>
+      <textarea id="noteInput" rows="2" placeholder="Ghi lại một điều quan trọng..."></textarea>
+      <button class="btn-primary" id="addNoteBtn">Thêm ghi chú</button>
+      <div id="notesList" style="margin-top:18px;"></div>
+    </section>
+
+    <!-- VIEW: SEARCH -->
+    <section class="view" id="view-search">
+      <div class="section-title">Tìm lại kỷ niệm</div>
+      <input type="text" id="searchInput" placeholder="Tìm theo từ khóa...">
+      <div class="chip-row" id="moodChips"></div>
+      <div id="searchResults" style="margin-top:16px;"></div>
+    </section>
+  </main>
+
+  <button class="fab" id="fabAdd">+</button>
+
+  <nav class="bottom">
+    <button data-view="diary" class="active"><span class="ic">📔</span>Nhật ký</button>
+    <button data-view="mood"><span class="ic">🌤️</span>Hôm nay</button>
+    <button data-view="notes"><span class="ic">📌</span>Ghi chú</button>
+    <button data-view="search"><span class="ic">🔍</span>Tìm kiếm</button>
+  </nav>
+</div>
+
+<!-- ENTRY EDITOR MODAL -->
+<div class="overlay" id="entryOverlay">
+  <div class="sheet">
+    <button class="close" id="closeEntrySheet">✕</button>
+    <h3 id="entrySheetTitle">Viết nhật ký</h3>
+    <span class="label">Ngày</span>
+    <input type="date" id="entryDate">
+    <span class="label">Tâm trạng</span>
+    <div class="mood-picker" id="entryMoodPicker"></div>
+    <span class="label">Tiêu đề (không bắt buộc)</span>
+    <input type="text" id="entryTitle" placeholder="Một ngày đáng nhớ...">
+    <span class="label">Nội dung</span>
+    <textarea id="entryContent" rows="7" placeholder="Hôm nay của bạn diễn ra như thế nào?"></textarea>
+    <button class="btn-primary" id="saveEntryBtn">Lưu nhật ký</button>
+    <button class="btn-secondary" id="deleteEntryBtn" style="display:none;">Xoá nhật ký này</button>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA LAYER ---------- */
+const STORAGE_KEY = 'nhatky_data_v1';
+const MOODS = [
+  {v:1, em:'😢', lb:'Rất tệ',   color:'var(--mood-1)'},
+  {v:2, em:'😔', lb:'Không vui',color:'var(--mood-2)'},
+  {v:3, em:'😐', lb:'Bình thường',color:'var(--mood-3)'},
+  {v:4, em:'🙂', lb:'Vui',      color:'var(--mood-4)'},
+  {v:5, em:'😄', lb:'Tuyệt vời',color:'var(--mood-5)'},
+];
+function moodOf(v){ return MOODS.find(m=>m.v===v) || MOODS[2]; }
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){ console.error('load error', e); }
+  return { entries: [], notes: [], dailyRatings: {} };
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let state = loadData();
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function fmtDateVN(dstr){
+  const [y,m,d] = dstr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+/* ---------- NAV ---------- */
+const views = ['diary','mood','notes','search'];
+function showView(name){
+  views.forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('active', v===name);
+  });
+  document.querySelectorAll('nav.bottom button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===name);
+  });
+  if(name==='mood') renderMoodView();
+  if(name==='notes') renderNotes();
+  if(name==='search') renderSearch();
+}
+document.querySelectorAll('nav.bottom button').forEach(b=>{
+  b.addEventListener('click', ()=>showView(b.dataset.view));
+});
+
+/* ---------- HEADER ---------- */
+function renderHeader(){
+  const now = new Date();
+  const hour = now.getHours();
+  const greet = hour<11 ? 'Chào buổi sáng' : hour<14 ? 'Chào buổi trưa' : hour<18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+  document.getElementById('greetText').textContent = greet;
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('vi-VN', { weekday:'long', day:'2-digit', month:'2-digit', year:'numeric' });
+
+  // streak: consecutive days (including today or yesterday) with at least one entry or rating
+  const daysWithActivity = new Set([
+    ...state.entries.map(e=>e.date),
+    ...Object.keys(state.dailyRatings)
+  ]);
+  let streak = 0;
+  let cursor = new Date();
+  // allow today to be "pending" without breaking streak from yesterday
+  if(!daysWithActivity.has(todayStr())){
+    cursor.setDate(cursor.getDate()-1);
+  }
+  while(true){
+    const ds = cursor.getFullYear()+'-'+String(cursor.getMonth()+1).padStart(2,'0')+'-'+String(cursor.getDate()).padStart(2,'0');
+    if(daysWithActivity.has(ds)){
+      streak++;
+      cursor.setDate(cursor.getDate()-1);
+    } else break;
+  }
+  document.getElementById('streakBox').textContent = `🔥 ${streak} ngày liên tiếp`;
+}
+
+/* ---------- DIARY LIST ---------- */
+function renderDiaryList(){
+  const list = document.getElementById('diaryList');
+  const sorted = [...state.entries].sort((a,b)=> (b.date+b.createdAt).localeCompare(a.date+a.createdAt));
+  if(sorted.length===0){
+    list.innerHTML = `<div class="empty"><span class="big">📔</span>Chưa có trang nhật ký nào.<br>Nhấn nút + để viết trang đầu tiên.</div>`;
+    return;
+  }
+  list.innerHTML = sorted.map(e=>entryCardHTML(e)).join('');
+  list.querySelectorAll('[data-edit]').forEach(el=>{
+    el.addEventListener('click', ()=>openEntrySheet(el.dataset.edit));
+  });
+  list.querySelectorAll('[data-del]').forEach(el=>{
+    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); deleteEntry(el.dataset.del); });
+  });
+}
+function entryCardHTML(e){
+  const m = moodOf(e.mood);
+  const snippet = e.content.length>220 ? e.content.slice(0,220)+'…' : e.content;
+  return `<div class="entry-card" style="border-left-color:${m.color}">
+    <div class="row1">
+      <div class="etitle">${escapeHTML(e.title || 'Không tiêu đề')}</div>
+      <div class="emood">${m.em}</div>
+    </div>
+    <div class="edate">${fmtDateVN(e.date)}</div>
+    <div class="esnippet">${escapeHTML(snippet)}</div>
+    <div class="etools">
+      <button data-edit="${e.id}">Xem / Sửa</button>
+      <button class="del" data-del="${e.id}">Xoá</button>
+    </div>
+  </div>`;
+}
+function escapeHTML(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function deleteEntry(id){
+  if(!confirm('Xoá trang nhật ký này? Không thể hoàn tác.')) return;
+  state.entries = state.entries.filter(e=>e.id!==id);
+  saveData(); renderDiaryList(); renderHeader();
+}
+
+/* ---------- ENTRY EDITOR SHEET ---------- */
+let editingEntryId = null;
+function buildMoodPicker(container, selectedValue, onSelect){
+  container.innerHTML = MOODS.map(m=>`
+    <button type="button" class="mood-opt ${m.v===selectedValue?'selected':''}" data-v="${m.v}">
+      <span class="em">${m.em}</span><span class="lb">${m.lb}</span>
+    </button>`).join('');
+  container.querySelectorAll('.mood-opt').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      container.querySelectorAll('.mood-opt').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      onSelect(parseInt(btn.dataset.v,10));
+    });
+  });
+}
+let entryMoodValue = 3;
+function openEntrySheet(id){
+  editingEntryId = id || null;
+  const entry = id ? state.entries.find(e=>e.id===id) : null;
+  document.getElementById('entrySheetTitle').textContent = entry ? 'Sửa nhật ký' : 'Viết nhật ký';
+  document.getElementById('entryDate').value = entry ? entry.date : todayStr();
+  document.getElementById('entryTitle').value = entry ? entry.title : '';
+  document.getElementById('entryContent').value = entry ? entry.content : '';
+  entryMoodValue = entry ? entry.mood : 3;
+  buildMoodPicker(document.getElementById('entryMoodPicker'), entryMoodValue, v=>entryMoodValue=v);
+  document.getElementById('deleteEntryBtn').style.display = entry ? 'block' : 'none';
+  document.getElementById('entryOverlay').classList.add('active');
+}
+function closeEntrySheet(){
+  document.getElementById('entryOverlay').classList.remove('active');
+  editingEntryId = null;
+}
+document.getElementById('fabAdd').addEventListener('click', ()=>openEntrySheet(null));
+document.getElementById('closeEntrySheet').addEventListener('click', closeEntrySheet);
+document.getElementById('saveEntryBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('entryDate').value || todayStr();
+  const title = document.getElementById('entryTitle').value.trim();
+  const content = document.getElementById('entryContent').value.trim();
+  if(!content){ alert('Bạn hãy viết vài dòng nội dung nhé.'); return; }
+  if(editingEntryId){
+    const e = state.entries.find(x=>x.id===editingEntryId);
+    e.date=date; e.title=title; e.content=content; e.mood=entryMoodValue;
+  } else {
+    state.entries.push({ id: uid(), date, title, content, mood: entryMoodValue, createdAt: new Date().toISOString() });
+  }
+  saveData();
+  closeEntrySheet();
+  renderDiaryList();
+  renderHeader();
+});
+document.getElementById('deleteEntryBtn').addEventListener('click', ()=>{
+  if(editingEntryId){ deleteEntry(editingEntryId); closeEntrySheet(); }
+});
+
+/* ---------- MOOD / TODAY VIEW ---------- */
+let todayMoodValue = 3;
+function renderMoodView(){
+  const t = todayStr();
+  const existing = state.dailyRatings[t];
+  todayMoodValue = existing ? existing.mood : 3;
+  buildMoodPicker(document.getElementById('moodPicker'), todayMoodValue, v=>todayMoodValue=v);
+  document.getElementById('moodNote').value = existing ? existing.note : '';
+  renderHistoryStrip();
+}
+document.getElementById('saveMoodBtn').addEventListener('click', ()=>{
+  const t = todayStr();
+  state.dailyRatings[t] = { mood: todayMoodValue, note: document.getElementById('moodNote').value.trim(), createdAt: new Date().toISOString() };
+  saveData();
+  renderHeader();
+  renderHistoryStrip();
+  document.getElementById('saveMoodBtn').textContent = 'Đã lưu ✓';
+  setTimeout(()=>{ document.getElementById('saveMoodBtn').textContent='Lưu đánh giá hôm nay'; }, 1400);
+});
+function renderHistoryStrip(){
+  const strip = document.getElementById('historyStrip');
+  const days = [];
+  for(let i=13;i>=0;i--){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    days.push({ds, label: d.getDate()});
+  }
+  strip.innerHTML = days.map(d=>{
+    const rating = state.dailyRatings[d.ds];
+    let moodVal = rating ? rating.mood : null;
+    if(!moodVal){
+      const dayEntries = state.entries.filter(e=>e.date===d.ds);
+      if(dayEntries.length){
+        moodVal = Math.round(dayEntries.reduce((s,e)=>s+e.mood,0)/dayEntries.length);
+      }
+    }
+    const color = moodVal ? moodOf(moodVal).color : null;
+    return `<div class="hday">
+      <div class="hdot" style="${color?`background:${color};border-color:${color}`:''}"></div>
+      <div class="dlabel">${d.label}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- NOTES ---------- */
+document.getElementById('addNoteBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('noteInput');
+  const val = input.value.trim();
+  if(!val) return;
+  state.notes.unshift({ id: uid(), content: val, important: false, createdAt: new Date().toISOString() });
+  input.value = '';
+  saveData();
+  renderNotes();
+});
+function renderNotes(){
+  const list = document.getElementById('notesList');
+  if(state.notes.length===0){
+    list.innerHTML = `<div class="empty"><span class="big">📌</span>Chưa có ghi chú nào.<br>Hãy ghi lại điều quan trọng đầu tiên.</div>`;
+    return;
+  }
+  const sorted = [...state.notes].sort((a,b)=>{
+    if(a.important!==b.important) return a.important ? -1 : 1;
+    return b.createdAt.localeCompare(a.createdAt);
+  });
+  list.innerHTML = sorted.map(n=>`
+    <div class="note-card ${n.important?'important':''}">
+      <div class="star" data-star="${n.id}">${n.important?'⭐':'☆'}</div>
+      <div style="flex:1;">
+        <div class="ncontent">${escapeHTML(n.content)}</div>
+        <div class="ndate">${new Date(n.createdAt).toLocaleDateString('vi-VN')}</div>
+      </div>
+      <button class="del" data-delnote="${n.id}">Xoá</button>
+    </div>`).join('');
+  list.querySelectorAll('[data-star]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const n = state.notes.find(x=>x.id===el.dataset.star);
+      n.important = !n.important;
+      saveData(); renderNotes();
+    });
+  });
+  list.querySelectorAll('[data-delnote]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(!confirm('Xoá ghi chú này?')) return;
+      state.notes = state.notes.filter(x=>x.id!==el.dataset.delnote);
+      saveData(); renderNotes();
+    });
+  });
+}
+
+/* ---------- SEARCH ---------- */
+let activeMoodFilter = null;
+function renderSearch(){
+  const chips = document.getElementById('moodChips');
+  const all = [{v:null, em:'✨', lb:'Tất cả'}, ...MOODS];
+  chips.innerHTML = all.map(m=>`
+    <div class="chip ${activeMoodFilter===m.v?'active':''}" data-mv="${m.v}">${m.em} ${m.lb}</div>
+  `).join('');
+  chips.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const v = c.dataset.mv;
+      activeMoodFilter = v==='null' ? null : parseInt(v,10);
+      renderSearch();
+    });
+  });
+  runSearch();
+}
+document.getElementById('searchInput').addEventListener('input', runSearch);
+function runSearch(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const results = document.getElementById('searchResults');
+  let entries = state.entries.filter(e=>{
+    const matchMood = activeMoodFilter ? e.mood===activeMoodFilter : true;
+    const matchText = q ? ((e.title||'').toLowerCase().includes(q) || e.content.toLowerCase().includes(q)) : true;
+    return matchMood && matchText;
+  }).sort((a,b)=> (b.date+b.createdAt).localeCompare(a.date+a.createdAt));
+
+  let notes = [];
+  if(!activeMoodFilter && q){
+    notes = state.notes.filter(n=> n.content.toLowerCase().includes(q));
+  }
+
+  if(entries.length===0 && notes.length===0){
+    results.innerHTML = `<div class="empty"><span class="big">🔍</span>Không tìm thấy kết quả phù hợp.</div>`;
+    return;
+  }
+  let html = '';
+  if(entries.length){
+    html += entries.map(e=>entryCardHTML(e)).join('');
+  }
+  if(notes.length){
+    html += `<div class="section-title" style="font-size:14px;">Ghi chú liên quan</div>`;
+    html += notes.map(n=>`<div class="note-card"><div style="flex:1;"><div class="ncontent">${escapeHTML(n.content)}</div></div></div>`).join('');
+  }
+  results.innerHTML = html;
+  results.querySelectorAll('[data-edit]').forEach(el=>{
+    el.addEventListener('click', ()=>openEntrySheet(el.dataset.edit));
+  });
+  results.querySelectorAll('[data-del]').forEach(el=>{
+    el.addEventListener('click', (ev)=>{ ev.stopPropagation(); deleteEntry(el.dataset.del); runSearch(); });
+  });
+}
+
+/* ---------- INIT ---------- */
+renderHeader();
+renderDiaryList();
+
+// register service worker if available (progressive enhancement, safe if it fails)
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>

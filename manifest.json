@@ -1,0 +1,14 @@
+{
+  "name": "Nhật Ký Của Tôi",
+  "short_name": "Nhật Ký",
+  "description": "Ứng dụng viết nhật ký, ghi chú điều quan trọng và theo dõi tâm trạng mỗi ngày.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#12162B",
+  "theme_color": "#12162B",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
